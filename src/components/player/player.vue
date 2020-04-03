@@ -6,6 +6,7 @@
                 @leave="leave"
                 @after-leave="afterLeave"
     >
+     
       <div class="normal-player" v-show="fullScreen">
         <div class="background">
           <img width="100%" height="100%" :src="currentSong.image">
@@ -16,13 +17,19 @@
           </div>
           <h1 class="title" v-html="currentSong.name"></h1>
           <h2 class="subtitle" v-html="currentSong.singer"></h2>
+           <label class="switch" >
+              <input type="checkbox" checked>
+              <div class="slider round" @click.stop="op"></div>
+           </label>
         </div>
         <div class="middle"
             @touchstart.prevent="middleTouchStart"
             @touchmove.prevent="middleTouchMove"
             @touchend="middleTouchEnd"
         >
+        
           <div class="middle-l" ref="middleL">
+           
             <div class="cd-wrapper" ref="cdWrapper">
               <div :class="['cd',cdCls]" >
                 <img class="image" :src="currentSong.image">
@@ -94,6 +101,7 @@
       </div>
     </transition>
     <playlist ref="showPlaylist"></playlist>
+     
     <audio @ended="end" :src="currentSong.url" ref="audio" @playing="ready" @error="error" @timeupdate="updateTime"></audio>
   </div>
 </template>
@@ -110,6 +118,7 @@
   import Scroll from 'base/scroll/scroll'
   import Playlist from 'components/playlist/playlist'
   import {playerMixin} from 'common/js/mixin'
+  import {addShake, removeShake} from 'common/js/deviceMotion'
   const transform = prefixStyle('transform')
   const transitionDuration = prefixStyle('transitionDuration')
   export default {
@@ -122,7 +131,9 @@
           currentLyric: null,
           currentLineNum: 0,
           currentShow: 'cd',
-          playLyric: null
+          playLyric: null,
+          isOpen: false,
+          index: 0
         }
       },
      computed: {
@@ -151,6 +162,17 @@
       this.touch = {}
     },
     methods: {
+     op() {
+        if (!this.isOpen) {
+          this.index = addShake(() => {
+            this.prev()
+          })
+          this.isOpen = true
+        } else {
+          removeShake(this.index)
+          this.isOpen = false
+        }
+     },
      showPlaylist() {
        this.$refs.showPlaylist.show()
      },
@@ -678,4 +700,63 @@
       transform: rotate(0)
     100%
       transform: rotate(360deg)
+ 
+
+.switch {
+  position: absolute;
+  display: inline-block;
+  width: 40px;
+  height: 24px;
+  right: 10px;
+  top: 5px;
+}
+
+.switch input {display:none;}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 1px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(20px);
+  -ms-transform: translateX(20px);
+  transform: translateX(20px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
 </style>
